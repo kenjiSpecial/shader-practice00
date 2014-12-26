@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>sketch03 Examples</title>
+    <script id="2d-vertex-shader" type="x-shader/x-vertex">
+        attribute vec2 a_position;
+        varying vec2 v_texCoord;
+
+
+
+        void main() {
+          v_texCoord = a_position;
+          gl_Position = vec4(a_position, 0, 1);
+        }
+    </script>
+
+    <script id="2d-fragment-shader" type="x-shader/x-fragment">
+        #ifdef GL_ES
+        precision mediump float;
+        #endif GL_ES
+
+        varying vec2 v_texCoord;
+        uniform float u_time;
+
+        vec2 rpos;
+        float r;
+        float angle;
+
+        float easeOut(float vel){
+            float val = -1.0 * vel * (vel-2.0);
+            return val;
+        }
+
+        float easeIn(float vel){
+            float val = vel * vel;
+            return val;
+        }
+
+        void drawCircle(){
+
+          float ringR = 0.75 * ( easeOut(u_time - .4) );
+          float thresh = 0.01 + sin(angle * 3.0 +  1.0 * u_time) * 0.001 + sin(angle * 13.0 + easeIn(u_time) * 1.0) * 0.003 + cos(angle * 19.0 + easeOut(u_time) * 3.5) * 0.002 + sin(angle * 11.0 + u_time * 2.0) * 0.001 ;
+
+
+          float colInValue = 2.0 * (u_time - .5);
+          float colValue = 1.0 - easeIn(colInValue);
+          if(abs(r - ringR) < min(thresh, 0.01) - (u_time - 0.6) / 30.0 ) gl_FragColor = vec4( colValue, colValue, colValue, 1.0);
+          else       gl_FragColor = vec4( 0.0,0.0,0.0,1.0);
+        }
+
+        void drawCross(){
+            float s = sin(angle * 4.0) + sin(angle * 3.0 +  10.0 * u_time) * .2;
+	        s += (0.00005*sin(u_time*4.2-0.1)) / (r*r*r*r) / 10.0;
+
+            float thresh = -3.41 + pow(r, 0.01) * 4.00 * (1.0 + .5*u_time);
+            thresh += (sin(sin(r-u_time) * 40.0) + sin((r-u_time) * 31.0) + 1.0)*0.01 - sin(u_time*5.2 - 0.5)*0.1 + u_time*0.2;
+
+            float colInValue = 2.0 * (u_time - .5);
+            float colValue = easeIn(colInValue) + .12;
+
+            if ((s*s*s*s) < thresh) gl_FragColor = vec4( 0.0,0.0,0.0,1.0);
+            else           gl_FragColor = vec4( colValue, colValue, colValue,1.0);
+
+        }
+
+        void main() {
+          rpos = v_texCoord - vec2(0.0, 0.0);
+          r = length(rpos);
+          angle = atan(rpos.y, rpos.x);
+
+
+          if(u_time > 0.5){
+            drawCircle();
+          }else{
+            drawCross();
+          }
+
+        }
+    </script>
+    <link rel="stylesheet" href="normalize.css"/>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script type="text/javascript" src="sketch03.js"></script>
+</body>
+</html>
